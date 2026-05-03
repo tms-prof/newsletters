@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria de Artigos</title>
+
+  <style>
+    /* 🔹 BASE (mobile first) */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      font-size: 16px; /* 🔥 maior no mobile */
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    /* 🔥 FLEXBOX RESPONSIVO */
+    .galeria {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    /* 📱 MOBILE → 1 coluna */
+    .card {
+      width: 100%;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    /* 📲 TABLET → 2 colunas */
+    @media (min-width: 600px) {
+      .card {
+        width: calc(50% - 12px);
+      }
+    }
+
+    /* 💻 DESKTOP → 3 colunas */
+    @media (min-width: 900px) {
+      .card {
+        width: calc(33.33% - 16px);
+      }
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .img-wrapper {
+      width: 100%;
+      height: 260px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .img-wrapper img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .card-content {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    /* 🔥 TIPOGRAFIA MOBILE (MAIOR) */
+    .card h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .subtitulo {
+      font-size: 16px;
+      color: #444;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 15px;
+      color: #666;
+      flex-grow: 1;
+    }
+
+    .card a {
+      margin-top: 12px;
+      text-decoration: none;
+      color: blue;
+      font-weight: bold;
+    }
+
+    /* 📲 TABLET (ajuste leve) */
+    @media (min-width: 600px) {
+      body {
+        font-size: 15px;
+      }
+
+      .card h3 {
+        font-size: 20px;
+      }
+
+      .subtitulo {
+        font-size: 15px;
+      }
+
+      .card p {
+        font-size: 14px;
+      }
+    }
+
+    /* 💻 DESKTOP (mais compacto) */
+    @media (min-width: 900px) {
+      body {
+        font-size: 14px;
+      }
+
+      .card h3 {
+        font-size: 18px;
+      }
+
+      .subtitulo {
+        font-size: 14px;
+      }
+
+      .card p {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Artigos</h1>
+
+  <div id="galeria" class="galeria"></div>
+
+  <script>
+    const url = "https://acbrasil.org.br/cms/wp-json/wp/v2/posts?per_page=100&_embed";
+
+    fetch(url)
+      .then(res => res.json())
+      .then(posts => {
+        const galeria = document.getElementById("galeria");
+
+        galeria.innerHTML = posts.map(post => {
+
+          const imagem = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url 
+            || "https://via.placeholder.com/400x200";
+
+          const titulo = post.title.rendered.replace(/<[^>]+>/g, "");
+
+          const temp = document.createElement("div");
+          temp.innerHTML = post.content.rendered;
+
+          const h2 = temp.querySelector("h2");
+          const h3 = temp.querySelector("h3");
+          const subtitulo = h2?.textContent || h3?.textContent || "";
+
+          const p = temp.querySelector("p");
+
+          let resumo = "";
+
+          if (p && p.textContent.length > 50) {
+            resumo = p.textContent;
+          } else {
+            resumo = temp.textContent;
+          }
+
+          resumo = resumo.substring(0, 180) + "...";
+
+          return `
+            <div class="card" onclick="window.location.href='artigo.html?id=${post.id}'">
+              
+              <div class="img-wrapper">
+                <img src="${imagem}" alt="imagem do artigo">
+              </div>
+
+              <div class="card-content">
+                <h3>${titulo}</h3>
+
+                ${subtitulo ? `<div class="subtitulo">${subtitulo}</div>` : ""}
+
+                <p>${resumo}</p>
+
+                <a href="artigo.html?id=${post.id}" onclick="event.stopPropagation()">Ler mais</a>
+              </div>
+
+            </div>
+          `;
+        }).join("");
+      })
+      .catch(err => console.error("Erro:", err));
+  </script>
+
+</body>
+</html>
