@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artigo</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: blue;
+      font-weight: bold;
+    }
+
+    img {
+      width: 100%;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+
+    /* 🔥 TIPOGRAFIA CONTROLADA */
+    .conteudo {
+      font-size: 20px;
+      line-height: 1.8;
+      color: #333;
+    }
+
+    .conteudo p,
+    .conteudo li {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .conteudo h2 {
+      font-size: 26px;
+      margin-top: 24px;
+    }
+
+    .conteudo h3 {
+      font-size: 22px;
+      margin-top: 20px;
+    }
+
+    /* 📲 PHABLET */
+    @media (min-width: 601px) {
+      .conteudo,
+      .conteudo p,
+      .conteudo li {
+        font-size: 18px;
+      }
+    }
+
+    /* 💻 TABLET+ */
+    @media (min-width: 769px) {
+      .conteudo,
+      .conteudo p,
+      .conteudo li {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <a href="index.html" class="voltar">← Voltar</a>
+
+  <div class="container" id="artigo"></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+      document.getElementById("artigo").innerHTML = "<p>Artigo não encontrado</p>";
+    } else {
+      const url = `https://acbrasil.org.br/cms/wp-json/wp/v2/posts/${id}?_embed`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(post => {
+
+          const imagem = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || "";
+          const titulo = post.title.rendered.replace(/<[^>]+>/g, "");
+
+          // 🔥 AQUI ESTÁ A CORREÇÃO PRINCIPAL
+          const temp = document.createElement("div");
+          temp.innerHTML = post.content.rendered;
+
+          // 🔥 REMOVE TODOS OS ESTILOS INLINE
+          temp.querySelectorAll("*").forEach(el => {
+            el.removeAttribute("style");
+          });
+
+          document.getElementById("artigo").innerHTML = `
+            <h1>${titulo}</h1>
+
+            ${imagem ? `<img src="${imagem}" alt="">` : ""}
+
+            <div class="conteudo">
+              ${temp.innerHTML}
+            </div>
+          `;
+        })
+        .catch(err => {
+          console.error("Erro:", err);
+          document.getElementById("artigo").innerHTML = "<p>Erro ao carregar artigo</p>";
+        });
+    }
+  </script>
+
+</body>
+</html>
